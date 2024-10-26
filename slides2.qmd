@@ -1,0 +1,227 @@
+---
+title: Summer is Coming
+subtitle: AI Tools for R, Shiny, and Pharma
+author: Joe Cheng
+date: 2024-10-29
+format:
+  revealjs:
+    theme: simple
+    transition: slide
+    slide-number: true
+    chalkboard: true
+    incremental: true
+editor:
+  render-on-save: true
+---
+
+```{r setup,include=FALSE}
+options(cli.width = 68)
+```
+
+## It's easy to be skeptical about GenAI
+
+* Grandiose claims about what LLMs can do
+* Even more grandiose claims about what they will become in the near future
+* The e/acc movement 🙄
+
+## Meanwhile, in the real world
+
+* ChatGPT tells us plausible falsehoods
+* Copilot writes code that often doesn't work
+* Facebook is flooded with AI generated nonsense
+* Is this even the future we want?
+
+## Why I think "Summer is Coming"
+
+* Judging LLMs by ChatGPT is like judging the iPhone by its phone app
+    * Put compute, touchscreen, sensors, and connectivity in billions of peoples' hands, and interesting things happen
+* The real power of LLMs is in their APIs!
+    * Every programmer now has access to a magic function that approximates human reasoning!
+
+## Agenda
+
+1. Demo
+2. How to call LLMs from R
+3. Using LLMs responsibly
+
+# Demos
+
+## Demo 1: Sidebot
+
+## Demo 2: Sidebot for Pharma
+
+## RStudio IDE integrations
+
+::: {.nonincremental}
+* {pal} by Simon Couch\
+[https://simonpcouch.github.io/pal/](https://simonpcouch.github.io/pal/)
+
+* {chattr} by Edgar Ruiz\
+[https://mlverse.github.io/chattr/](https://mlverse.github.io/chattr/)
+:::
+
+## Other experiments
+
+::: {.nonincremental}
+* Turn recipe e-books and web pages into structured (JSON) data
+* GitHub issue auto-labeler, based on project-specific criteria
+* Automated ALT text for plots (for visually impaired users)
+* Code linter and security analyzer, for almost any language
+* Mock dataset generator
+* Natural language processing: detecting locations in news articles, extracting emotions from reviews
+:::
+
+## Negative results
+
+::: {.nonincremental}
+* Look at raw data and summarize/interpret it (without offloading to R or Python)
+* Generate complicated regular expressions
+* Replace technical documentation for Posit's commercial products
+:::
+
+# How to use LLMs from R
+
+## Introducing {elmer}
+
+::: {.nonincremental}
+[https://hadley.github.io/elmer/](https://hadley.github.io/elmer/)
+
+- A new package for R for working with chat APIs
+- **Compatible:** Works with OpenAI, Anthropic, Google, AWS, Ollama, Perplexity, Groq, and more
+- **Powerful:** Designed for multi-turn conversations, streaming, async, and tool calling
+- **Easy:** Might be the easiest LLM API client in any language
+:::
+
+## Getting started
+
+```{r}
+#| echo: true
+#| cache: true
+
+# Assumes $OPENAI_API_KEY is set
+
+chat <- elmer::chat_openai(
+  model = "gpt-4o",
+  system_prompt = "Be terse but professional."
+)
+
+chat$chat("When was the R language created?")
+```
+
+## Multi-turn conversations
+
+```{r}
+#| echo: true
+#| cache: true
+
+# The `chat` object keeps the conversation history
+chat$chat("Who created it?")
+```
+
+## Tool Calling
+
+::: {.incremental}
+
+- Allows LLMs to interact with other systems
+- Sounds complicated? It isn't!
+- Supported by most of the newest LLMs, but not all (notably, not the new OpenAI `o1` models, yet)
+
+:::
+
+## How It Works
+
+::: {.incremental}
+- [Not like this](https://sequencediagram.org/index.html?presentationMode=readOnly#initialData=C4S2BsFMAIAkHsDu1j3uaBjAhucIA7Ac2gBEB5AUQGUA5QTAIAVaReAJwGsAoL7TVNtACqAZ0hsuAW2zBxIXABNIIkEQIhM8AiOgAxAIwA2AOwBBaKZEqRwbAWBcADtjahMIZ-ejxHkAokgZAAtxADp2Ih5RcQBaAD5La1t7AC5oAG8AHQJoaDZ0SDSAIgBXMTYigBps3M17P2BigHUgmQByHWAQlkCu8TzVIOBoAiRoGT0-RGwAT2gABRcOAH4q7IBfLkSQGztgeJ8p3pC2cLYiNIBxSmYAegDg8VvMErY2Btuy24AGACZf-QAVlCACsRFouId-McwhF4ttdqkMkVZJJHEU0oZAZVoEU6gowCAtCIMbiRCUCAQZkVNgjkvs4tE2Gksjk8gVitgrDt6Ws2XVZEiigBJYAdaBY6BKIjvZTjAgKaDkykzQAoBNhoAAjQIlUAAMxKGAUswAhEUNkA) - with the assistant executing stuff
+- [Yes like this](https://sequencediagram.org/index.html?presentationMode=readOnly#initialData=C4S2BsFMAIAkHsDu1j3uaBjAhucIA7Ac2gBEB5AUQGVpF4AnAawCgWAHbB0TETg4NHjtIBRJGzAAFpAYA6RkRbZMqBtACqAZ1ksAtpNkhcAE0haQRAiEzwCW6ADEAjADYA7AEFonrRa3A2AJs2rIAtAB8vv6BAgBc0ADeADoE0NAM6JAJAEQArjoMOQA0qem2AqLAuQDqUpIA5A7SMOKSMuoMllKCBEjQkk6iiNgAntAAClxMAPwlZSho4FoJANpEkMAA+ph5DAxVW20tDAC6qQC+LNEgAUHAkaEMCQDCngAy79Ab27v7h8cOgAKHIABgATODnABWHIAShYT0iwmGEhOCgYRASAHFKAAVaAAekBskJfwOAkJBUJEKh0LkACstHYWCixGiOhiiI9CglEjlgJA9OwcglXNDitAchUTGAQHYtKKpVo8gQCKMclckVE-LdYtVoAAlfEaQ0AOSSAqFIrFEqlMrlCqVORVao1VxudwEPNkfIWmSguWwuq9wHmaSwdkF8SlAElgE1oOLoGYiAdzAMCCZoK71YAUAmw0AARhI8qAAGZ5DAmMYAQhylyAA)
+  - User asks assistant a question; includes metadata for available tools
+  - Assistant asks the user to invoke a tool, passing its desired arguments
+  - User invokes the tool, and returns the output to the assistant
+  - Assistant incorporates the tool's output as additional context for formulating a response
+:::
+
+## How It Works
+
+Another way to think of it:
+
+- The client can perform tasks that the assistant can't do
+- Tools put control into the hands of the assistant—it decides when to use them, and what arguments to pass in, and what to do with the results
+- Having an "intelligent-ish" coordinator of tools is a surprisingly general, powerful capability!
+
+## Tool Calling in {elmer}
+
+[https://hadley.github.io/elmer/articles/tool-calling.html](https://hadley.github.io/elmer/articles/tool-calling.html)
+
+::: {.nonincremental}
+1. Write a function intended for the model to call
+2. Add function documentation, including each parameter's type and description
+3. Call `elmer::create_tool_def(func)` to generate a tool definition
+4. Add that definition to the chat using `chat$register_tool`
+:::
+
+## Introducing {shinychat}
+
+[https://github.com/jcheng5/shinychat](https://github.com/jcheng5/shinychat)
+
+* Chatbot UI for Shiny for R
+* Designed to integrate with {elmer} or bring any other chat client
+
+## Introducing {shinychat}
+
+```{.r code-line-numbers="|5|9|11|12-13|"}
+library(shiny)
+library(shinychat)
+
+ui <- bslib::page_fluid(
+  chat_ui("chat")
+)
+
+server <- function(input, output, session) {
+  chat <- elmer::chat_openai(system_prompt = "You're a trickster who answers in riddles")
+  
+  observeEvent(input$chat_user_input, {
+    stream <- chat$stream_async(input$chat_user_input)
+    chat_append("chat", stream)
+  })
+}
+
+shinyApp(ui, server)
+```
+
+# Using LLMs responsibly
+
+## What are the dangers?
+
+1. Incorrect and unverifiable answers
+2. Uneven reasoning, math, and coding capabilities
+3. Lack of interpretability
+4. Lack of reproducibility
+5. Data security/privacy
+
+## Incorrect and unverifiable answers {.smaller}
+
+1. **Just say no** if correctness is paramount.
+2. **Keep a human in the loop:** Allow the user to inspect not just the answers, but the method(s) used by the model to get to the answers.
+3. **Automatically verify the LLM's answers:** Find e.g. syntax errors in generated code and send it back if necessary.
+4. **Use cases with "squishy" answers:** If correctness is subjective, might be a good fit for LLMs.
+5. **Set clear expectations with the user** by making it obvious where cool but unreliable technology is being used.
+
+## Uneven reasoning, math, and coding capabilities
+
+1. **Check your own assumptions** empirically by thoroughly testing the use cases you care about. Use the same model/prompt (and if possible, data) you'll use in production.
+2. **Outsource math/stats calculations** to tool calls.
+3. **Set clear expectations with your users** that the tool is fallible and some perseverance is required.
+
+## Data security/privacy
+
+* Many companies are loathe to send queries (laden with potentially proprietary code and other trade secrets) to OpenAI and Anthropic.
+
+* "Open" models like Llama are safer, but aren't as smart (yet).
+
+* AWS-hosted Anthropic models and Azure-hosed OpenAI models may be helpful.
+
+# Thank you
+
+::: {.noninteractive}
+* {elmer}: [https://hadley.github.io/elmer/](https://hadley.github.io/elmer/)
+* {shinychat}: [https://github.com/jcheng5/shinychat](https://github.com/jcheng5/shinychat)
+:::
