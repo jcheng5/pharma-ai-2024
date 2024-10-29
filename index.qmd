@@ -48,7 +48,11 @@ options(cli.width = 68)
 
 ## Demo 1: Sidebot
 
+[https://github.com/jcheng5/r-sidebot](https://github.com/jcheng5/r-sidebot)
+
 ## Demo 2: Sidebot for Pharma
+
+[https://github.com/jcheng5/pharma-sidebot](https://github.com/jcheng5/pharma-sidebot)
 
 ## RStudio IDE integrations
 
@@ -241,6 +245,12 @@ server <- function(input, output, session) {
 
 shinyApp(ui, server)
 ```
+
+## Putting it all together
+
+- Create a Shiny interface using {shinychat}
+- Converse using {elmer}
+- Register tools with {elmer} to control parts of your Shiny app (e.g., from the [Pharma Sidebot example](https://github.com/jcheng5/pharma-sidebot/blob/de0b5506824d1ad9a4ef9c105f5c32dce0f7b455/app.R#L169-L196))
 
 # Using LLMs responsibly
 
