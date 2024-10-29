@@ -58,6 +58,10 @@ options(cli.width = 68)
 
 * {chattr} by Edgar Ruiz\
 [https://mlverse.github.io/chattr/](https://mlverse.github.io/chattr/)
+
+* {gptstudio}/{gpttools} by Michel Nivard, James Wade, and Samuel Calderon\
+[https://michelnivard.github.io/gptstudio/](https://michelnivard.github.io/gptstudio/)\
+[https://jameshwade.github.io/gpttools/](https://jameshwade.github.io/gpttools/)
 :::
 
 ## Other experiments
@@ -87,10 +91,12 @@ options(cli.width = 68)
 [https://hadley.github.io/elmer/](https://hadley.github.io/elmer/)
 
 - A new package for R for working with chat APIs
-- **Compatible:** Works with OpenAI, Anthropic, Google, AWS, Ollama, Perplexity, Groq, and more
-- **Powerful:** Designed for multi-turn conversations, streaming, async, and tool calling
 - **Easy:** Might be the easiest LLM API client in any language
+- **Powerful:** Designed for multi-turn conversations, streaming, async, and tool calling
+- **Compatible:** Works with OpenAI, Anthropic, Google, AWS, Ollama, Perplexity, Groq, and more
 :::
+
+(Prior art: {openai}, {tidyllm}, {gptr}, {rgpt3}, {askgpt}, {chatgpt}...)
 
 ## Getting started
 
@@ -108,7 +114,7 @@ chat <- elmer::chat_openai(
 chat$chat("When was the R language created?")
 ```
 
-## Multi-turn conversations
+. . .
 
 ```{r}
 #| echo: true
@@ -120,23 +126,83 @@ chat$chat("Who created it?")
 
 ## Tool Calling
 
+[https://hadley.github.io/elmer/articles/tool-calling.html](https://hadley.github.io/elmer/articles/tool-calling.html)
+
+- Level up your chatbot with R functions
+- Write R functions, and expose them to the chatbot
+- The chatbot can call these functions with arguments, and use the results in its responses
+
+## Example
+
+**Step 1:** Create an R function (or "tool") for the chatbot to call
+
+```{r}
+#| echo: true
+#| cache: true
+library(openmeteo)
+
+#' Get current weather data from Open-Meteo using openmeteo package
+#'
+#' @param lat The latitude of the location.
+#' @param lon The longitude of the location.
+#' @return A list containing current weather information including temperature (F), wind speed (mph), and precipitation (inch).
+get_current_weather <- function(lat, lon) {
+  openmeteo::weather_now(
+    c(lat, lon),
+    response_units = list(temperature_unit = "fahrenheit", windspeed_unit = "mph", precipitation_unit = "inch")
+  ) |> jsonlite::toJSON(auto_unbox = TRUE)
+}
+```
+
+## Example
+
+**Step 2:** Register the function/tool with the chatbot
+
+```{r}
+#| echo: true
+#| cache: true
+library(elmer)
+chat <- chat_openai(model = "gpt-4o")
+
+chat$register_tool(tool(
+  get_current_weather,
+  "Get current weather data from Open-Meteo using openmeteo package. Returns a list containing current weather information including temperature (F), wind speed (mph), and precipitation (inch).",
+  lat = type_number("The latitude of the location."),
+  lon = type_number("The longitude of the location.")
+))
+```
+
+. . .
+
+You don't have to write this code by hand; `elmer::create_tool_def(get_current_weather)` generated this.
+
+## Example
+
+**Step 3:** Ask the chatbot a question that requires the tool
+
+```{r}
+#| echo: true
+#| cache: true
+chat$chat("What's the weather at Fenway Park?")
+```
+
+## Example
+
+```{r}
+#| echo: true
+#| cache: true
+chat
+```
+
+## How It Works {visibility="hidden"}
+
 ::: {.incremental}
-
-- Allows LLMs to interact with other systems
-- Sounds complicated? It isn't!
-- Supported by most of the newest LLMs, but not all (notably, not the new OpenAI `o1` models, yet)
-
-:::
-
-## How It Works
-
-::: {.incremental}
-- [Not like this](https://sequencediagram.org/index.html?presentationMode=readOnly#initialData=C4S2BsFMAIAkHsDu1j3uaBjAhucIA7Ac2gBEB5AUQGUA5QTAIAVaReAJwGsAoL7TVNtACqAZ0hsuAW2zBxIXABNIIkEQIhM8AiOgAxAIwA2AOwBBaKZEqRwbAWBcADtjahMIZ-ejxHkAokgZAAtxADp2Ih5RcQBaAD5La1t7AC5oAG8AHQJoaDZ0SDSAIgBXMTYigBps3M17P2BigHUgmQByHWAQlkCu8TzVIOBoAiRoGT0-RGwAT2gABRcOAH4q7IBfLkSQGztgeJ8p3pC2cLYiNIBxSmYAegDg8VvMErY2Btuy24AGACZf-QAVlCACsRFouId-McwhF4ttdqkMkVZJJHEU0oZAZVoEU6gowCAtCIMbiRCUCAQZkVNgjkvs4tE2Gksjk8gVitgrDt6Ws2XVZEiigBJYAdaBY6BKIjvZTjAgKaDkykzQAoBNhoAAjQIlUAAMxKGAUswAhEUNkA) - with the assistant executing stuff
-- [Yes like this](https://sequencediagram.org/index.html?presentationMode=readOnly#initialData=C4S2BsFMAIAkHsDu1j3uaBjAhucIA7Ac2gBEB5AUQGVpF4AnAawCgWAHbB0TETg4NHjtIBRJGzAAFpAYA6RkRbZMqBtACqAZ1ksAtpNkhcAE0haQRAiEzwCW6ADEAjADYA7AEFonrRa3A2AJs2rIAtAB8vv6BAgBc0ADeADoE0NAM6JAJAEQArjoMOQA0qem2AqLAuQDqUpIA5A7SMOKSMuoMllKCBEjQkk6iiNgAntAAClxMAPwlZSho4FoJANpEkMAA+ph5DAxVW20tDAC6qQC+LNEgAUHAkaEMCQDCngAy79Ab27v7h8cOgAKHIABgATODnABWHIAShYT0iwmGEhOCgYRASAHFKAAVaAAekBskJfwOAkJBUJEKh0LkACstHYWCixGiOhiiI9CglEjlgJA9OwcglXNDitAchUTGAQHYtKKpVo8gQCKMclckVE-LdYtVoAAlfEaQ0AOSSAqFIrFEqlMrlCqVORVao1VxudwEPNkfIWmSguWwuq9wHmaSwdkF8SlAElgE1oOLoGYiAdzAMCCZoK71YAUAmw0AARhI8qAAGZ5DAmMYAQhylyAA)
-  - User asks assistant a question; includes metadata for available tools
-  - Assistant asks the user to invoke a tool, passing its desired arguments
-  - User invokes the tool, and returns the output to the assistant
-  - Assistant incorporates the tool's output as additional context for formulating a response
+- [Not like this](https://sequencediagram.org/index.html?presentationMode=readOnly&shrinkToFit=true#initialData=C4S2BsFMAIAkHsDu1j3uaBjAhucIA7Ac2gBEB5AUQGUA5QTAIAVaReAJwGsAoLgM3gLBsiSAGd4AW0gA2AEZtsBACajovACy8A7NErgpbLhOzBIbELiViQRAiEwDVAMQCM0rQEFo5AA6QCHgCSRiZmFuBWojZ2DgTOAAwArACcidDwfgQiJgAWZgB07EQ8egYAtAB8vv5BAFzQAN4AOgTQ0GzokPUARACuombdADQtbbGmgj0A6jkmAOSqwHkskLlm7TY5wNAESNAm0E7+iNgAntAACticAPzDLQC+XNUBgZUZx6tLBUX1AOKUZgAemy3zYQMwvTYbH8wCB-SB8QATEiXIl8gArcQELgfLJfPJsQpsIiVF51RrdUwSHzderSRJDaDdWJKMAgRx05miXoEAinbpPclvCqlMz1ZqtdqdHrYURRURCQT3KXjWE9QLABbQBnQKxEGFifbKaA8vmnQAoBNhoLJVr1QLxehglGcAITdR5AA) - with the assistant executing stuff
+- [Yes like this](https://sequencediagram.org/index.html?presentationMode=readOnly&shrinkToFit=true#initialData=C4S2BsFMAIAkHsDu1j3uaBjAhucIA7Ac2gBEB5AUQGVpF4AnAawCgWBbbYSBkXAE0gBnEEQIhM8AkOgAxAAwBWAJyLo8AA6QCiSFwAWPAHSMiLAGZTg2XUPjtIANgBGDbAX4zzAFnMB2aEpwBwYOLh4+cEERMQkpGVkARkc-AEFoci0CVIBJNiCQgFoAPkztXIAuaABvAB0CaGgGdEgqgCIAVyEeNoAaesbJAm5h9oB1fS4AchlgQzo9OZ4m0X1gaAIkaC45bURsAE9oAAVsZgB+PoGUNHAhKoBtIkhgAH1MDoYGbTfdAx4ALr1AC+LDK2RyJQKPCqAGFUgAZBHQZ5vD5fH6vP5LBgACja8gATITEoo2gBKFjQhglTR7RaGBgmBhEKoAcUoABVoAB6bGMnno77DHldHlEkmKIwAKzsBBYdJ0DOMpihwRhNTa3HYGjaVUcil60DaQ34YBA8T1xqEHQIBAObVB1JK4Mq0AASlyAKrugBymu1uv1huNpvNlvaNrtDtBrshxWpVTqDSaLXa2CEIiE1mGVxTQxGwHaOWAM2gBuggiI32E2w80Cj9sAKATYaDOPQdUDmDoYfiHACEbRBQA)
+  - Elmer asks LLM a question; includes metadata for available tools
+  - LLM asks Elmer to invoke a tool, passing its desired arguments
+  - Elmer invokes the tool, and returns the output to the LLM
+  - LLM incorporates the tool's output as additional context for formulating a response
 :::
 
 ## How It Works
@@ -146,17 +212,6 @@ Another way to think of it:
 - The client can perform tasks that the assistant can't do
 - Tools put control into the hands of the assistant—it decides when to use them, and what arguments to pass in, and what to do with the results
 - Having an "intelligent-ish" coordinator of tools is a surprisingly general, powerful capability!
-
-## Tool Calling in {elmer}
-
-[https://hadley.github.io/elmer/articles/tool-calling.html](https://hadley.github.io/elmer/articles/tool-calling.html)
-
-::: {.nonincremental}
-1. Write a function intended for the model to call
-2. Add function documentation, including each parameter's type and description
-3. Call `elmer::create_tool_def(func)` to generate a tool definition
-4. Add that definition to the chat using `chat$register_tool`
-:::
 
 ## Introducing {shinychat}
 

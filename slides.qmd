@@ -1,0 +1,280 @@
+---
+title: Summer is Coming
+subtitle: AI Tools for R, Shiny, and Pharma
+author: Joe Cheng
+date: 2024-10-29
+format:
+  revealjs:
+    theme: simple
+    transition: slide
+    slide-number: true
+    chalkboard: true
+editor:
+  render-on-save: true
+---
+
+```{r setup,include=FALSE}
+options(cli.width = 68)
+```
+
+## ⛔️ What I'm NOT here to talk about
+
+- Is AGI coming?
+- Can AI replace humans?
+- Are we all going to lose our jobs?
+- Will AI take over the world and enslave the human race?
+
+## ⛔️ What I'm NOT here to talk about
+
+- ChatGPT and Copilot (mostly)
+- Image generation, self-driving cars, and other non-LLM forms of AI
+
+## ✅ What I AM here to talk about
+
+- Interacting with LLMs from code (i.e., Chat APIs)
+- How they might be useful despite their dangers and limitations
+- How to use them from R
+- How to use them from Shiny
+
+## What is an AI chat?
+
+- A back-and-forth conversation between a **user** and an **assistant**, governed by a **system** of rules
+- ChatGPT is one example of an AI chat system
+- But underneath ChatGPT is a **powerful chat API** that you can program against
+- Today I'll show you how easy it is!
+
+## The power of chat APIs
+
+- ChatGPT and Copilot are great, but...
+- Coding against chat APIs is WAY more exciting!
+- Even with the limitations of today's LLMs, these are tremendously useful tools
+
+## Anatomy of a chat
+
+```{scss}
+.message {
+  font-size: 0.8em;
+  border-radius: 30px;
+  padding: 12px 24px;
+  margin-bottom: 0.5em;
+  --bgcolor: white;
+  --fgcolor: black;
+  background-color: var(--bgcolor);
+  color: var(--fgcolor);
+}
+.message-left {
+  @extend .message;
+  margin-right: 30%;
+}
+.message-right {
+  @extend .message;
+  margin-left: 30%;
+}
+.message-system {
+  @extend .message-right;
+  --fgcolor: lime;
+  --bgcolor: black;
+}
+.message-user {
+  @extend .message-right;
+  --bgcolor: #ccc;
+}
+.message-assistant {
+  @extend .message-left;
+  --bgcolor: #007aff;
+  --fgcolor: white;
+}
+.badge {
+  font-family: var(--r-main-font);
+  font-size: 1.4rem;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.dummy {
+  font-size: 1.4rem;
+  text-transform: uppercase;
+  background-color: var(--fgcolor);
+  color: var(--bgcolor);
+  margin-right: auto;
+  border-radius: 100px;
+  padding: 0.5rem 1rem;
+}
+```
+
+::: {.message-user}
+<div class="badge">🧑 User</div>
+When was the R language first released?
+:::
+
+::: {.message-assistant}
+<div class="badge">🤖 Assistant</div>
+The R language was first released in 1995.
+:::
+
+## Anatomy of a chat
+
+::: {.message-user}
+<div class="badge">🧑 User</div>
+When was the R language first released?
+:::
+
+::: {.message-assistant}
+<div class="badge">🤖 Assistant</div>
+The R language was first released in 1995.
+:::
+
+::: {.message-user}
+<div class="badge">🧑 User</div>
+Who created it?
+:::
+
+::: {.message-assistant}
+<div class="badge">🤖 Assistant</div>
+R was created by Ross Ihaka and Robert Gentleman.
+:::
+
+## Anatomy of a chat
+
+::: {.message-system}
+<div class="badge">⚙️ System</div>
+SHOUT your answers
+:::
+
+::: {.message-user}
+<div class="badge">🧑 User</div>
+When was the R language first released?
+:::
+
+::: {.message-assistant}
+<div class="badge">🤖 Assistant</div>
+THE R LANGUAGE WAS FIRST RELEASED IN 1995!
+:::
+
+::: {.message-user}
+<div class="badge">🧑 User</div>
+Who created it?
+:::
+
+::: {.message-assistant}
+<div class="badge">🤖 Assistant</div>
+R WAS CREATED BY ROSS IHAKA AND ROBERT GENTLEMAN!
+:::
+
+## Under the hood
+
+Request 1:
+
+```json
+{
+  model: "gpt-4o",
+  messages: [
+    {role: "system", content: "SHOUT your answers"},
+    {role: "user", content: "When was the R language first released?"}
+  ]
+}
+```
+
+Response:
+
+```json
+{
+  message: {
+    role: "assistant", content: "The R language was first released in 1995."
+  }
+}
+```
+
+## Under the hood
+
+Request 2:
+
+```{.json code-line-numbers="|4-6|7|"}
+{
+  model: "gpt-4o",
+  messages: [
+    {role: "system", content: "SHOUT your answers"},
+    {role: "user", content: "When was the R language first released?"},
+    {role: "assistant", content: "The R language was first released in 1995."}
+    {role: "user", content: "Who created it?"}
+  ]
+}
+```
+
+Response:
+
+```json
+{
+  message: {
+    role: "assistant", content: "R was created by Ross Ihaka and Robert Gentleman."
+  }
+}
+```
+
+# Introducing {elmer}
+
+## Introducing {elmer}
+
+- A new package for R for working with chat APIs
+- By Hadley Wickham
+- Supports OpenAI, Anthropic, Google Gemini, Ollama, Perplexity, Groq, plus any OpenAI-compatible API
+- Prioritizes ease of learning and ease of use
+
+## Getting started
+
+```{r}
+#| echo: true
+#| cache: true
+
+# Assumes $OPENAI_API_KEY is set
+
+chat <- elmer::chat_openai(
+  model = "gpt-4o",
+  system_prompt = "Be professional and concise."
+)
+chat$chat("What was the first rotary engined car sold in the US?")
+```
+
+## Multi-turn conversations
+
+```{r}
+#| echo: true
+#| cache: true
+
+# The `chat` object keeps the conversation history
+chat$chat("How about in Japan?")
+```
+
+# {shinychat} and the Power of Shiny UI + GenAI (10 minutes)
+
+- **Introducing {shinychat}**: Explain how {shinychat} extends {elmer} to allow users to create chatbot interfaces easily within Shiny.
+- **Use Cases**: Discuss several possibilities, such as creating conversational dashboards for Pharma or interactive reports that integrate GenAI with Pharma datasets.
+- **Live Demo** (optional): A brief walk-through of a simple Shiny chatbot interface using {shinychat}, showing how it can be customized and extended.
+
+# Responsible Use: Reproducibility and Hallucination Mitigation (5-7 minutes)
+
+- **Challenges**: Discuss common issues like hallucinations in AI responses and the importance of reproducibility in research and development, especially for Pharma.
+- **Solutions**: Demonstrate how {elmer} and {shinychat} can be configured to improve model transparency and reliability, ensuring outputs are auditable and reproducible.
+
+# Opportunities in Pharma: Compliance and Innovation (10 minutes)
+
+- **Pharma-specific Scenarios**: Explore how these tools can be applied responsibly in Pharma, such as creating AI-powered assistants for clinical trial management or drug discovery.
+- **Compliance Considerations**: Address industry regulations (GxP, FDA guidelines, etc.) and how integrating AI solutions must align with these rules. Discuss how {elmer} can support compliance workflows.
+- **Interactive Exploration**: End with some thought-provoking questions for the audience about what kinds of applications they see being enabled by these new tools, especially considering the constraints of the Pharma industry.
+
+# Conclusion and Q&A (5-7 minutes)
+
+- **Recap key points**: Highlight the power of integrating GenAI with R and Shiny for building Pharma solutions.
+- **Call to Action**: Encourage the audience to experiment with {elmer} and {shinychat}, and consider the opportunities these tools provide for the Pharma industry.
+- **Q&A session**: Open the floor for questions from the audience.
+
+
+
+## Mitigating factors
+
+- Is there a human in the loop?
+- Are humans likely to understand intuitively that they are interacting with a (flawed) AI?
+- Is the problem facing the AI narrow enough that we can assume it will succeed?
+- Is there a built-in mechanism that can detect when the AI is failing?
+- Is the answer/solution more subjective than objective?
+- Are the stakes low enough that an incorrect answer/solution is acceptable?

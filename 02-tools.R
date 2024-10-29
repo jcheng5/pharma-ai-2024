@@ -5,7 +5,7 @@ library(beepr)
 #' Plays a sound effect.
 #'
 #' @param sound Which sound effect to play.
-#' @returns NULL
+#' @returns Nothing
 play_sound <- function(sound = c("correct", "incorrect", "you-win")) {
   sound <- match.arg(sound)
   if (sound == "correct") {
@@ -15,7 +15,7 @@ play_sound <- function(sound = c("correct", "incorrect", "you-win")) {
   } else if (sound == "you-win") {
     beepr::beep("fanfare")
   }
-  list(success = TRUE, value = NULL)
+  NULL
 }
 
 chat <- chat_openai(
@@ -27,16 +27,12 @@ chat <- chat_openai(
 # Give the chatbot the ability to play a sound.
 #
 # Created using `elmer::create_tool_metadata(play_sound)`
-chat$register_tool(ToolDef(
-  fun = play_sound,
-  name = "play_sound",
-  description = "Plays a sound effect.",
-  arguments = list(
-    sound = ToolArg(
-      type = "string",
-      description = "Which sound effect to play. Options are 'correct', 'incorrect', 'you-win'. Defaults to 'correct'.",
-      required = FALSE
-    )
+chat$register_tool(tool(
+  play_sound,
+  "Plays a sound effect.",
+  sound = type_string(
+    "Which sound effect to play. Options are 'correct', 'incorrect', 'you-win'. Defaults to 'correct'.",
+    required = FALSE
   )
 ))
 

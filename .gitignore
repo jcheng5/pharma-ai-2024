@@ -1,6 +1,7 @@
-abstract.html
-transcript.html
+.Rhistory
 .Rproj.user
 .Renviron
+.env
 *_files/
 *_cache/
+*.html
