@@ -10,6 +10,7 @@ format:
     slide-number: true
     chalkboard: true
     incremental: true
+    footer: https://jcheng5.github.io/pharma-ai-2024/
 editor:
   render-on-save: true
 ---
@@ -33,6 +34,7 @@ options(cli.width = 68)
 
 ## Why I think "Summer is Coming"
 
+* The LLM "plateau of productivity" is going to be epic
 * Judging LLMs by ChatGPT is like judging the iPhone by its phone app
     * Put compute, touchscreen, sensors, and connectivity in billions of peoples' hands, and interesting things happen
 * The real power of LLMs is in their APIs!
