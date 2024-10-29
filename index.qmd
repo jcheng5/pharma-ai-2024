@@ -54,6 +54,11 @@ options(cli.width = 68)
 
 [https://github.com/jcheng5/pharma-sidebot](https://github.com/jcheng5/pharma-sidebot)
 
+## Sidebot demos
+
+- These demos were written to be easy to fork---please replace my data and visualizations with your own (as your corporate IT/Legal allows)
+- If you already know Shiny, this talk will explain everything else (the LLM parts)
+
 ## RStudio IDE integrations
 
 ::: {.nonincremental}
