@@ -546,47 +546,75 @@ Joe Cheng
 </div>
 </div>
 </section>
+<section id="streaming" class="slide level2">
+<h2>Streaming</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href=""></a>chat <span class="ot">&lt;-</span> elmer<span class="sc">::</span><span class="fu">chat_openai</span>(<span class="at">model =</span> <span class="st">"gpt-4o-mini"</span>)</span>
+<span id="cb5-2"><a href=""></a>chat<span class="sc">$</span><span class="fu">chat</span>(<span class="st">"Tell me a story."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
+</div>
+<img data-src="index_files/figure-revealjs//unnamed-chunk-3.svg" width="960" class="r-stretch"></section>
+<section id="chat-methods" class="slide level2">
+<h2>Chat methods</h2>
+<div>
+<ul>
+<li><code>chat$chat("What is 2+2?")</code><br>
+Returns the final result</li>
+<li><code>chat$stream("What is 2+2?")</code><br>
+Returns incremental results</li>
+</ul>
+</div>
+<div class="fragment">
+<p>And async versions for scalable Shiny apps:</p>
+<div>
+<ul>
+<li><code>chat$chat_async("What is 2+2?")</code></li>
+<li><code>chat$stream_async("What is 2+2?")</code></li>
+</ul>
+</div>
+</div>
+</section>
 <section id="tool-calling" class="slide level2">
 <h2>Tool Calling</h2>
 <p><a href="https://hadley.github.io/elmer/articles/tool-calling.html">https://hadley.github.io/elmer/articles/tool-calling.html</a></p>
 <ul>
-<li class="fragment">Level up your chatbot with R functions</li>
-<li class="fragment">Write R functions, and expose them to the chatbot</li>
-<li class="fragment">The chatbot can call these functions with arguments, and use the results in its responses</li>
+<li class="fragment">Give new capabilities to an LLM by writing R functions</li>
+<li class="fragment">Write R functions, and expose them to the LLM</li>
+<li class="fragment">The LLM can call these functions with arguments, and use the results in its responses</li>
 </ul>
 </section>
 <section id="example" class="slide level2">
 <h2>Example</h2>
 <p><strong>Step 1:</strong> Create an R function (or “tool”) for the chatbot to call</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href=""></a><span class="fu">library</span>(openmeteo)</span>
-<span id="cb5-2"><a href=""></a></span>
-<span id="cb5-3"><a href=""></a><span class="co">#' Get current weather data from Open-Meteo using openmeteo package</span></span>
-<span id="cb5-4"><a href=""></a><span class="co">#'</span></span>
-<span id="cb5-5"><a href=""></a><span class="co">#' @param lat The latitude of the location.</span></span>
-<span id="cb5-6"><a href=""></a><span class="co">#' @param lon The longitude of the location.</span></span>
-<span id="cb5-7"><a href=""></a><span class="co">#' @return A list containing current weather information including temperature (F), wind speed (mph), and precipitation (inch).</span></span>
-<span id="cb5-8"><a href=""></a>get_current_weather <span class="ot">&lt;-</span> <span class="cf">function</span>(lat, lon) {</span>
-<span id="cb5-9"><a href=""></a>  openmeteo<span class="sc">::</span><span class="fu">weather_now</span>(</span>
-<span id="cb5-10"><a href=""></a>    <span class="fu">c</span>(lat, lon),</span>
-<span id="cb5-11"><a href=""></a>    <span class="at">response_units =</span> <span class="fu">list</span>(<span class="at">temperature_unit =</span> <span class="st">"fahrenheit"</span>, <span class="at">windspeed_unit =</span> <span class="st">"mph"</span>, <span class="at">precipitation_unit =</span> <span class="st">"inch"</span>)</span>
-<span id="cb5-12"><a href=""></a>  ) <span class="sc">|&gt;</span> jsonlite<span class="sc">::</span><span class="fu">toJSON</span>(<span class="at">auto_unbox =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb5-13"><a href=""></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href=""></a><span class="fu">library</span>(openmeteo)</span>
+<span id="cb6-2"><a href=""></a></span>
+<span id="cb6-3"><a href=""></a><span class="co">#' Get current weather data from Open-Meteo using openmeteo package</span></span>
+<span id="cb6-4"><a href=""></a><span class="co">#'</span></span>
+<span id="cb6-5"><a href=""></a><span class="co">#' @param lat The latitude of the location.</span></span>
+<span id="cb6-6"><a href=""></a><span class="co">#' @param lon The longitude of the location.</span></span>
+<span id="cb6-7"><a href=""></a><span class="co">#' @return A list containing current weather information including temperature (F), wind speed (mph), and precipitation (inch).</span></span>
+<span id="cb6-8"><a href=""></a>get_current_weather <span class="ot">&lt;-</span> <span class="cf">function</span>(lat, lon) {</span>
+<span id="cb6-9"><a href=""></a>  openmeteo<span class="sc">::</span><span class="fu">weather_now</span>(</span>
+<span id="cb6-10"><a href=""></a>    <span class="fu">c</span>(lat, lon),</span>
+<span id="cb6-11"><a href=""></a>    <span class="at">response_units =</span> <span class="fu">list</span>(<span class="at">temperature_unit =</span> <span class="st">"fahrenheit"</span>, <span class="at">windspeed_unit =</span> <span class="st">"mph"</span>, <span class="at">precipitation_unit =</span> <span class="st">"inch"</span>)</span>
+<span id="cb6-12"><a href=""></a>  ) <span class="sc">|&gt;</span> jsonlite<span class="sc">::</span><span class="fu">toJSON</span>(<span class="at">auto_unbox =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb6-13"><a href=""></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="example-1" class="slide level2">
 <h2>Example</h2>
 <p><strong>Step 2:</strong> Register the function/tool with the chatbot</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href=""></a><span class="fu">library</span>(elmer)</span>
-<span id="cb6-2"><a href=""></a>chat <span class="ot">&lt;-</span> <span class="fu">chat_openai</span>(<span class="at">model =</span> <span class="st">"gpt-4o"</span>)</span>
-<span id="cb6-3"><a href=""></a></span>
-<span id="cb6-4"><a href=""></a>chat<span class="sc">$</span><span class="fu">register_tool</span>(<span class="fu">tool</span>(</span>
-<span id="cb6-5"><a href=""></a>  get_current_weather,</span>
-<span id="cb6-6"><a href=""></a>  <span class="st">"Get current weather data from Open-Meteo using openmeteo package. Returns a list containing current weather information including temperature (F), wind speed (mph), and precipitation (inch)."</span>,</span>
-<span id="cb6-7"><a href=""></a>  <span class="at">lat =</span> <span class="fu">type_number</span>(<span class="st">"The latitude of the location."</span>),</span>
-<span id="cb6-8"><a href=""></a>  <span class="at">lon =</span> <span class="fu">type_number</span>(<span class="st">"The longitude of the location."</span>)</span>
-<span id="cb6-9"><a href=""></a>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href=""></a><span class="fu">library</span>(elmer)</span>
+<span id="cb7-2"><a href=""></a>chat <span class="ot">&lt;-</span> <span class="fu">chat_openai</span>(<span class="at">model =</span> <span class="st">"gpt-4o"</span>)</span>
+<span id="cb7-3"><a href=""></a></span>
+<span id="cb7-4"><a href=""></a>chat<span class="sc">$</span><span class="fu">register_tool</span>(<span class="fu">tool</span>(</span>
+<span id="cb7-5"><a href=""></a>  get_current_weather,</span>
+<span id="cb7-6"><a href=""></a>  <span class="st">"Get current weather data from Open-Meteo using openmeteo package. Returns a list containing current weather information including temperature (F), wind speed (mph), and precipitation (inch)."</span>,</span>
+<span id="cb7-7"><a href=""></a>  <span class="at">lat =</span> <span class="fu">type_number</span>(<span class="st">"The latitude of the location."</span>),</span>
+<span id="cb7-8"><a href=""></a>  <span class="at">lon =</span> <span class="fu">type_number</span>(<span class="st">"The longitude of the location."</span>)</span>
+<span id="cb7-9"><a href=""></a>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="fragment">
 <p>You don’t have to write this code by hand; <code>elmer::create_tool_def(get_current_weather)</code> generated this.</p>
@@ -596,49 +624,54 @@ Joe Cheng
 <h2>Example</h2>
 <p><strong>Step 3:</strong> Ask the chatbot a question that requires the tool</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href=""></a>chat<span class="sc">$</span><span class="fu">chat</span>(<span class="st">"What's the weather at Fenway Park?"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href=""></a>chat<span class="sc">$</span><span class="fu">chat</span>(<span class="st">"What's the weather at Fenway Park?"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>The current weather at Fenway Park is as follows:
-- **Temperature:** 29.1°F
-- **Wind Speed:** 4.1 mph
-- **Precipitation:** None
-
-It's currently night time and clear.</code></pre>
+<pre><code>The current weather at Fenway Park is 45.9°F with a wind speed of 
+5.7 mph.</code></pre>
 </div>
 </div>
 </section>
 <section id="example-3" class="slide level2">
 <h2>Example</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href=""></a>chat</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href=""></a>chat</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;Chat turns=4 tokens=284/74&gt;
+<pre><code>&lt;Chat turns=4 tokens=284/51&gt;
 ── user ────────────────────────────────────────────────────────────
 What's the weather at Fenway Park?
 ── assistant ───────────────────────────────────────────────────────
-[tool request (call_yMZZBrUHVU6KRFRnT4Qjyilx)]: 
+[tool request (call_DKylIC1Tz2qxz9Zy0Nn2Qw85)]: 
 get_current_weather(lat = 42.3467, lon = -71.0972)
 ── user ────────────────────────────────────────────────────────────
-[tool result  (call_yMZZBrUHVU6KRFRnT4Qjyilx)]: 
+[tool result  (call_DKylIC1Tz2qxz9Zy0Nn2Qw85)]: 
 [{"datetime":"2024-10-29 
-01:30:00","interval":900,"temperature":29.1,"windspeed":4.1,"winddirection":283,"is_day":0,"weathercode":0}]
+09:15:00","interval":900,"temperature":45.9,"windspeed":5.7,"winddirection":132,"is_day":1,"weathercode":1}]
 ── assistant ───────────────────────────────────────────────────────
-The current weather at Fenway Park is as follows: - 
-**Temperature:** 29.1°F -
-**Wind Speed:** 4.1 mph - **Precipitation:** None
-
-It's currently night time and clear.</code></pre>
+The current weather at Fenway Park is 45.9°F with a wind speed of 
+5.7 mph.</code></pre>
 </div>
 </div>
 </section>
 
-<section id="how-it-works-1" class="slide level2">
-<h2>How It Works</h2>
-<p>Another way to think of it:</p>
+<section id="what-can-tools-let-llms-do" class="slide level2 smaller">
+<h2>What can tools let LLMs do?</h2>
 <ul>
-<li class="fragment">The client can perform tasks that the assistant can’t do</li>
-<li class="fragment">Tools put control into the hands of the assistant—it decides when to use them, and what arguments to pass in, and what to do with the results</li>
-<li class="fragment">Having an “intelligent-ish” coordinator of tools is a surprisingly general, powerful capability!</li>
+<li class="fragment">Fetch data
+<ul>
+<li class="fragment">Search the web</li>
+<li class="fragment">Call an API</li>
+</ul></li>
+<li class="fragment">Perform calculations
+<ul>
+<li class="fragment">Write R or Python code</li>
+<li class="fragment">To call other GenAI models</li>
+</ul></li>
+<li class="fragment">Take action
+<ul>
+<li class="fragment">In Shiny: modify reactive values, navigate to a page or tab</li>
+<li class="fragment">Control your smart light bulbs</li>
+<li class="fragment">Set labels on GitHub issues</li>
+</ul></li>
 </ul>
 </section>
 <section id="introducing-shinychat" class="slide level2">
@@ -651,23 +684,23 @@ It's currently night time and clear.</code></pre>
 </section>
 <section id="introducing-shinychat-1" class="slide level2">
 <h2>Introducing {shinychat}</h2>
-<div class="sourceCode" id="cb11" data-code-line-numbers="|5|9|11|12-13|"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href=""></a><span class="fu">library</span>(shiny)</span>
-<span id="cb11-2"><a href=""></a><span class="fu">library</span>(shinychat)</span>
-<span id="cb11-3"><a href=""></a></span>
-<span id="cb11-4"><a href=""></a>ui <span class="ot">&lt;-</span> bslib<span class="sc">::</span><span class="fu">page_fluid</span>(</span>
-<span id="cb11-5"><a href=""></a>  <span class="fu">chat_ui</span>(<span class="st">"chat"</span>)</span>
-<span id="cb11-6"><a href=""></a>)</span>
-<span id="cb11-7"><a href=""></a></span>
-<span id="cb11-8"><a href=""></a>server <span class="ot">&lt;-</span> <span class="cf">function</span>(input, output, session) {</span>
-<span id="cb11-9"><a href=""></a>  chat <span class="ot">&lt;-</span> elmer<span class="sc">::</span><span class="fu">chat_openai</span>(<span class="at">system_prompt =</span> <span class="st">"You're a trickster who answers in riddles"</span>)</span>
-<span id="cb11-10"><a href=""></a>  </span>
-<span id="cb11-11"><a href=""></a>  <span class="fu">observeEvent</span>(input<span class="sc">$</span>chat_user_input, {</span>
-<span id="cb11-12"><a href=""></a>    stream <span class="ot">&lt;-</span> chat<span class="sc">$</span><span class="fu">stream_async</span>(input<span class="sc">$</span>chat_user_input)</span>
-<span id="cb11-13"><a href=""></a>    <span class="fu">chat_append</span>(<span class="st">"chat"</span>, stream)</span>
-<span id="cb11-14"><a href=""></a>  })</span>
-<span id="cb11-15"><a href=""></a>}</span>
-<span id="cb11-16"><a href=""></a></span>
-<span id="cb11-17"><a href=""></a><span class="fu">shinyApp</span>(ui, server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb12" data-code-line-numbers="|5|9|11|12-13|"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href=""></a><span class="fu">library</span>(shiny)</span>
+<span id="cb12-2"><a href=""></a><span class="fu">library</span>(shinychat)</span>
+<span id="cb12-3"><a href=""></a></span>
+<span id="cb12-4"><a href=""></a>ui <span class="ot">&lt;-</span> bslib<span class="sc">::</span><span class="fu">page_fluid</span>(</span>
+<span id="cb12-5"><a href=""></a>  <span class="fu">chat_ui</span>(<span class="st">"chat"</span>)</span>
+<span id="cb12-6"><a href=""></a>)</span>
+<span id="cb12-7"><a href=""></a></span>
+<span id="cb12-8"><a href=""></a>server <span class="ot">&lt;-</span> <span class="cf">function</span>(input, output, session) {</span>
+<span id="cb12-9"><a href=""></a>  chat <span class="ot">&lt;-</span> elmer<span class="sc">::</span><span class="fu">chat_openai</span>(<span class="at">system_prompt =</span> <span class="st">"You're a trickster who answers in riddles"</span>)</span>
+<span id="cb12-10"><a href=""></a>  </span>
+<span id="cb12-11"><a href=""></a>  <span class="fu">observeEvent</span>(input<span class="sc">$</span>chat_user_input, {</span>
+<span id="cb12-12"><a href=""></a>    stream <span class="ot">&lt;-</span> chat<span class="sc">$</span><span class="fu">stream_async</span>(input<span class="sc">$</span>chat_user_input)</span>
+<span id="cb12-13"><a href=""></a>    <span class="fu">chat_append</span>(<span class="st">"chat"</span>, stream)</span>
+<span id="cb12-14"><a href=""></a>  })</span>
+<span id="cb12-15"><a href=""></a>}</span>
+<span id="cb12-16"><a href=""></a></span>
+<span id="cb12-17"><a href=""></a><span class="fu">shinyApp</span>(ui, server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="putting-it-all-together" class="slide level2">
 <h2>Putting it all together</h2>
